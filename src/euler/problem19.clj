@@ -44,7 +44,12 @@
 (comment (let [year 1900]
            (for [month months-of-year] [month (days-in-month year month)])))
 
-(def start-day {:year 1900, :month 'January, :day-of-month 1})
+(def beginning-of-time
+  {:year 1900, :month 'January, :day-of-month 1, :day-of-week 'Monday})
+(def start-date
+  (last (days-between beginning-of-time
+                      {:year 1901, :month 'January, :day-of-month 2})))
+(def end-date {:year 2001, :month 'January, :day-of-month 1})
 
 
 (def test-dates
@@ -77,25 +82,47 @@
 
 #_(next-month 'December)
 
+(defn next-day-of-week
+  [day-of-week]
+  (->> (clojure.core/cycle days-of-week)
+       (take 8)
+       (drop-while (partial not= day-of-week))
+       (drop 1)
+       first))
+
+#_(next-day-of-week 'Sunday)
+#_(next-day-of-week 'Saturday)
+
 (defn increment-day
   "Gets the next valid calendar date after this date."
-  [{:keys [year month day-of-month], :as date}]
-  (let [year-of-next-day (if (is-last-day-of-year? date) (inc year) year)
-        month-of-next-day
-          (if (is-last-day-of-month? date) (next-month month) month)
-        day-of-month-of-next-day
-          (if (is-last-day-of-month? date) 1 (inc day-of-month))])
-  ;;tbd
-)
+  [{:keys [year month day-of-month day-of-week], :as date}]
+  {:year (if (is-last-day-of-year? date) (inc year) year),
+   :month (if (is-last-day-of-month? date) (next-month month) month),
+   :day-of-month (if (is-last-day-of-month? date) 1 (inc day-of-month)),
+   :day-of-week (next-day-of-week day-of-week)})
 
-(comment)
+(comment (for [test-date test-dates]
+           [test-date (increment-day (assoc test-date :day-of-week 'Monday))]))
 
-(defn day-of-week-of-day
-  (loop [current-day start-day
-         day-of-week 'Monday
-         sunday-count 0]
-    (let [next-day (increment-day current-day)]
-      (recur next-day
-             next-day-of-week
-             (..)
-             (if now-it-is-sunday (inc sunday-count) sunday-count)))))
+(defn dates-are-equal?
+  "A weakness of our model is the need to specify the day of week of the end date.
+  This shouldn't sink our program, so we'll make things work even if
+  the end date day of week is incorrect."
+  [a-date b-date]
+  (= (dissoc a-date :day-of-week) (dissoc b-date :day-of-week)))
+
+
+(defn days-between
+  [start-date end-date]
+  (->> start-date
+       (iterate increment-day)
+       (take-while (complement (partial dates-are-equal? end-date)))))
+
+
+(->> (days-between start-date end-date)
+     (filter (fn [{:keys [day-of-week day-of-month]}]
+               (and (= day-of-week 'Sunday) (= day-of-month 1))))
+     count)
+
+
+
