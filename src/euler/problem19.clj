@@ -65,20 +65,16 @@
 (defn next-month
   [month]
   (->> (clojure.core/cycle months-of-year)
-       (take 13)
        (drop-while (partial not= month))
-       (drop 1)
-       first))
+       second))
 
 #_(next-month 'December)
 
 (defn next-day-of-week
   [day-of-week]
   (->> (clojure.core/cycle days-of-week)
-       (take 8)
        (drop-while (partial not= day-of-week))
-       (drop 1)
-       first))
+       second))
 
 #_(next-day-of-week 'Sunday)
 #_(next-day-of-week 'Saturday)
