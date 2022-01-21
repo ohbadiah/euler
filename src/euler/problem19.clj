@@ -24,7 +24,6 @@
 
 (def days-of-week
   ['Sunday 'Monday 'Tuesday 'Wednesday 'Thursday 'Friday 'Saturday])
-(clojure.core/cycle days-of-week)
 
 (defn is-leap-year?
   [year]
@@ -42,14 +41,6 @@
 
 (comment (let [year 1900]
            (for [month months-of-year] [month (days-in-month year month)])))
-
-(def beginning-of-time
-  {:year 1900, :month 'January, :day-of-month 1, :day-of-week 'Monday})
-(def start-date
-  (last (days-between beginning-of-time
-                      {:year 1901, :month 'January, :day-of-month 2})))
-(def end-date {:year 2001, :month 'January, :day-of-month 1})
-
 
 (def test-dates
   [{:year 1902, :month 'February, :day-of-month 28}
@@ -116,15 +107,18 @@
        (iterate increment-day)
        (take-while (complement (partial dates-are-equal? end-date)))))
 
+(def beginning-of-time
+  {:year 1900, :month 'January, :day-of-month 1, :day-of-week 'Monday})
+(def start-date
+  (last (days-between beginning-of-time
+                      {:year 1901, :month 'January, :day-of-month 2})))
+(def end-date {:year 2001, :month 'January, :day-of-month 1})
+
 (def the-sequence-in-question
   (->> (days-between start-date end-date)
        (filter (fn [{:keys [day-of-week day-of-month]}]
                  (and (= day-of-week 'Sunday) (= day-of-month 1))))))
 
-(concat (take 10 the-sequence-in-question)
-        (->> the-sequence-in-question
-             reverse
-             (take 10)
-             reverse))
+(count the-sequence-in-question)
 
 
